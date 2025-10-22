@@ -1,0 +1,6 @@
+// lib/token.ts
+import crypto from 'crypto';
+
+export function makeInviteToken() {
+  return crypto.randomBytes(32).toString('hex'); // secure 64-char token
+}
