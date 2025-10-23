@@ -1,47 +1,68 @@
 import { useState } from "react";
 
 export default function Dashboard() {
-  const [activeTemplates, setActiveTemplates] = useState<string[]>([]);
+  const [slackToken, setSlackToken] = useState("");
 
-  const activateTemplate = async (templateName: string) => {
+  const handleSaveToken = async () => {
     try {
-      const res = await fetch("/api/templates/run", {
+      if (!slackToken) {
+        alert("Please enter your Slack token first");
+        return;
+      }
+
+      const teamId = "08fca22a-75c4-4311-a9e4-535cf69bdeeb"; // 👈 apna real team ID yahan daalo
+
+      const payload = {
+        teamId: teamId,
+        service: "slack",
+        token: slackToken.trim(),
+      };
+
+      console.log("Sending payload:", payload);
+
+      const response = await fetch("/api/team/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          team_id: "08fca22a-75c4-4311-a9e4-535cf69bdeeb", // replace with your test team ID
-          template_id: "async_standup",
-          channel_id: "C09MQTQVANQ", // replace with your Slack channel ID (#bot-testing)
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        setActiveTemplates([...activeTemplates, templateName]);
-        alert(`${templateName} template activated!`);
-      } else {
-        alert("Failed to activate template");
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert("Failed: " + data.error);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error activating template");
+
+      alert("Slack token saved successfully ✅");
+    } catch (err: any) {
+      console.error("Request failed", err);
+      alert("Request failed: " + err.message);
     }
   };
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Team Dashboard</h1>
-
-      <h2>Active Templates:</h2>
-      <ul>
-        {activeTemplates.length === 0 && <li>No templates active yet</li>}
-        {activeTemplates.map((t) => (
-          <li key={t}>{t}</li>
-        ))}
-      </ul>
-
-      <h2>Available Templates:</h2>
-      <button onClick={() => activateTemplate("Async Standup")}>
-        Activate Async Standup
+      <p>Connect your Slack token below:</p>
+      <input
+        type="text"
+        placeholder="Enter Slack token"
+        value={slackToken}
+        onChange={(e) => setSlackToken(e.target.value)}
+        style={{ padding: "0.5rem", width: "300px" }}
+      />
+      <button
+        onClick={handleSaveToken}
+        style={{
+          marginLeft: "1rem",
+          padding: "0.5rem 1rem",
+          background: "#0070f3",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        Save Token
       </button>
     </div>
   );

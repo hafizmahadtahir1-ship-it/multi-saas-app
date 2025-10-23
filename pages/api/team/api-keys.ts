@@ -1,40 +1,49 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import supabaseAdmin from '../../../lib/supabaseAdmin'
-import crypto from 'crypto'
+import { NextApiRequest, NextApiResponse } from "next";
+import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
-// ⚠️ apna secret key env me rakho (.env.local)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'devsecretdevsecret' // 16/24/32 length
-const IV_LENGTH = 16
-
-function encrypt(text: string) {
-  const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv)
-  let encrypted = cipher.update(text)
-  encrypted = Buffer.concat([encrypted, cipher.final()])
-  return iv.toString('hex') + ':' + encrypted.toString('hex')
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method === "POST") {
+    try {
+      const { teamId, service, token } = req.body;
 
-  const { team_id, provider, api_key } = req.body
-  if (!team_id || !provider || !api_key) return res.status(400).json({ error: 'Missing fields' })
+      if (!teamId || !service || !token) {
+        return res.status(400).json({ error: "Missing fields" });
+      }
 
-  try {
-    const encrypted_key = encrypt(api_key)
+      const encryptionKey = process.env.ENCRYPTION_KEY!;
+      if (!encryptionKey || encryptionKey.length !== 32) {
+        throw new Error("Invalid ENCRYPTION_KEY length (must be 32 chars)");
+      }
 
-    const { error } = await supabaseAdmin.from('api_keys').upsert({
-      team_id,
-      provider,
-      encrypted_key,
-      created_at: new Date().toISOString(),
-    })
+      const iv = Buffer.alloc(16, 0);
+      const cipher = crypto.createCipheriv(
+        "aes-256-cbc",
+        Buffer.from(encryptionKey, "utf-8"),
+        iv
+      );
 
-    if (error) throw error
+      let encrypted = cipher.update(token, "utf-8", "hex");
+      encrypted += cipher.final("hex");
 
-    return res.status(200).json({ message: 'API key saved securely ✅' })
-  } catch (err: any) {
-    console.error(err)
-    return res.status(500).json({ error: 'Server error', details: err.message })
+      const { data, error } = await supabase
+        .from("team_api_keys")
+        .insert([{ team_id: teamId, service, token_encrypted: encrypted }]);
+
+      if (error) throw error;
+
+      return res.status(200).json({ success: true, data });
+    } catch (error: any) {
+      console.error("API Error:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+  } else {
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

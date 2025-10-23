@@ -1,74 +1,68 @@
-import { useState } from 'react'
+// components/SlackConnectModal.tsx
+import { useState } from 'react';
+import Modal from 'react-modal';
+
+Modal.setAppElement('#__next');
 
 interface SlackConnectModalProps {
-  teamId: string
-  onClose: () => void
+  teamId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function SlackConnectModal({ teamId, onClose }: SlackConnectModalProps) {
-  const [apiKey, setApiKey] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+export default function SlackConnectModal({ teamId, isOpen, onClose }: SlackConnectModalProps) {
+  const [token, setToken] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSave = async () => {
-    if (!apiKey) {
-      setMessage('Please enter your Slack API key')
-      return
-    }
-
-    setLoading(true)
-    setMessage('')
-
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
     try {
       const res = await fetch('/api/team/api-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          team_id: teamId,
-          provider: 'slack',
-          api_key: apiKey,
-        }),
-      })
-
-      const data = await res.json()
+        body: JSON.stringify({ team_id: teamId, slack_token: token }),
+      });
+      const data = await res.json();
       if (res.ok) {
-        setMessage('✅ Slack connected successfully!')
-        setTimeout(() => onClose(), 1500)
+        setSuccess(true);
       } else {
-        setMessage(`❌ Error: ${data.error || 'Something went wrong'}`)
+        setError(data.error || 'Failed to save token');
       }
     } catch (err) {
-      setMessage('❌ Network error')
+      setError('Network error');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
-        <h2 className="text-lg font-bold mb-4">Connect Slack</h2>
-        <input
-          type="text"
-          placeholder="Enter Slack API key"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          className="border w-full px-3 py-2 mb-3 rounded"
-        />
-        {message && <p className="mb-2 text-sm">{message}</p>}
-        <div className="flex justify-end space-x-2">
-          <button onClick={onClose} className="bg-gray-300 px-3 py-2 rounded">
-            Cancel
-          </button>
+    <Modal isOpen={isOpen} onRequestClose={onClose} contentLabel="Connect Slack" className="max-w-md mx-auto mt-20 bg-white p-6 rounded shadow-lg">
+      <h2 className="text-xl font-bold mb-4">Connect Slack</h2>
+      {success ? (
+        <p className="text-green-600 mb-4">Slack token saved successfully!</p>
+      ) : (
+        <>
+          <input
+            type="text"
+            placeholder="Enter Slack Token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            className="w-full border p-2 mb-4 rounded"
+          />
+          {error && <p className="text-red-600 mb-2">{error}</p>}
           <button
-            onClick={handleSave}
+            onClick={handleSubmit}
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? 'Saving...' : 'Save Token'}
           </button>
-        </div>
-      </div>
-    </div>
-  )
+        </>
+      )}
+      <button onClick={onClose} className="mt-4 text-gray-500 hover:underline">Close</button>
+    </Modal>
+  );
 }
