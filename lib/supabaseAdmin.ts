@@ -29,5 +29,5 @@ export function decrypt(text: string): string {
   return decrypted.toString();
 }
 
-// ✅ Add this line to make it default-exported for Next.js imports
+// ✅ Ye line sabse important hai — file ke bilkul end par honi chahiye
 export default supabaseAdmin;
