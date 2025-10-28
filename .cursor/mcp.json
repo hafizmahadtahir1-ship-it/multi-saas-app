@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/mahad-labs/javascript-nextjs"
+    }
+  }
+}
