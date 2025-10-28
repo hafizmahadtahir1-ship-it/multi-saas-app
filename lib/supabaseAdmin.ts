@@ -28,3 +28,6 @@ export function decrypt(text: string): string {
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
 }
+
+// ✅ Add this line to make it default-exported for Next.js imports
+export default supabaseAdmin;
