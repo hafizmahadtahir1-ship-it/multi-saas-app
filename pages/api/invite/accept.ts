@@ -1,6 +1,6 @@
 // pages/api/invite/accept.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabaseAdmin'; // 👈 path adjust karo agar alag hai
+import supabaseAdmin from '../../../lib/supabaseAdmin'; // 👈 path adjust karo agar alag hai
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

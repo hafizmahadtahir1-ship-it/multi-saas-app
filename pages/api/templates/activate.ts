@@ -1,6 +1,6 @@
 // pages/api/templates/activate.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import supabaseAdmin from "@/lib/supabaseAdmin";
 import { logError, logInfo } from "@/lib/logger";
 import { rateLimit } from "@/lib/rateLimit";
 import { encrypt } from "@/lib/encrypt";
