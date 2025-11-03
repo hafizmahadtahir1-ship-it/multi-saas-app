@@ -1,9 +1,14 @@
 "use client";
 import { useState } from "react";
-import supabase from "../lib/supabaseClient"
-import { getTeamId } from "../lib/getTeam";
+import supabase from "../lib/supabaseClient";
 
-export default function Activate({ templateId }: { templateId: string }) {
+export default function Activate({
+  teamId,
+  templateId,
+}: {
+  teamId: string;
+  templateId: string;
+}) {
   const [loading, setLoading] = useState(false);
 
   const handleActivate = async () => {
@@ -12,13 +17,6 @@ export default function Activate({ templateId }: { templateId: string }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         alert("Please login first");
-        setLoading(false);
-        return;
-      }
-
-      const teamId = await getTeamId(user.id);
-      if (!teamId) {
-        alert("No team found for this user");
         setLoading(false);
         return;
       }

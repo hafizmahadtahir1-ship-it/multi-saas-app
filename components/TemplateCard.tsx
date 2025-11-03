@@ -8,10 +8,11 @@ interface Template {
 
 interface TemplateCardProps {
   template: Template;
-  teamId: string;
+  teamId?: string; // optional because sometimes not used directly
   isActive?: boolean;
   loading?: string | null;
   onActivated?: (templateId: string) => void;
+  children?: React.ReactNode; // ✅ added this line
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -20,6 +21,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   isActive = false,
   loading,
   onActivated,
+  children, // ✅ added this
 }) => {
   const handleActivate = () => {
     onActivated?.(template.id);
@@ -28,7 +30,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   return (
     <div className="border p-4 rounded shadow mb-4">
       <h2 className="font-bold text-lg">{template.name}</h2>
-      <p className="text-gray-600">{template.description}</p>
+      <p className="text-gray-600 mb-2">{template.description}</p>
 
       <button
         onClick={handleActivate}
@@ -41,6 +43,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
       >
         {loading === template.id ? "Activating..." : isActive ? "Active" : "Activate"}
       </button>
+
+      {/* ✅ Render children below the button */}
+      {children && <div className="mt-3">{children}</div>}
     </div>
   );
 };

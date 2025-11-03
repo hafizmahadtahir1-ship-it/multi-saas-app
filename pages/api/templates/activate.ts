@@ -18,7 +18,7 @@ const activateSchema = z.object({
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Rate limit check
-    if (!rateLimit(req, res, "free")) return;
+    await rateLimit(req as unknown as Request);
 
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });

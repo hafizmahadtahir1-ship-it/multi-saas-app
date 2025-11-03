@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    await rateLimit(req);
+    await rateLimit(req as unknown as Request);
 
     const { user_id, team_name } = req.body;
 

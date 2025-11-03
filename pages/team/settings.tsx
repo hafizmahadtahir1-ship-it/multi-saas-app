@@ -1,5 +1,5 @@
+// pages/team/settings.tsx
 import { useEffect, useState } from 'react'
-import { useSession } from '@supabase/auth-helpers-react'
 import supabase from '../../lib/supabaseClient'
 import TemplateCard from '../../components/TemplateCard'
 import Activate from '../../components/Activate'
@@ -11,16 +11,26 @@ type Template = {
 }
 
 export default function TeamSettings() {
-  const session = useSession()
+  const [session, setSession] = useState<any>(null)
   const [templates, setTemplates] = useState<Template[]>([])
   const [teamId, setTeamId] = useState<string>('')
 
+  // Fetch session
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      setSession(data.session)
+    }
+    getSession()
+  }, [])
+
+  // Fetch team and templates after session is ready
   useEffect(() => {
     const fetchTeamAndTemplates = async () => {
       if (!session?.user) return
 
       // Fetch user's team
-      const { data: members, error: memberError } = await supabase
+      const { data: member, error: memberError } = await supabase
         .from('members')
         .select('team_id')
         .eq('user_id', session.user.id)
@@ -31,7 +41,7 @@ export default function TeamSettings() {
         return
       }
 
-      setTeamId(members.team_id)
+      setTeamId(member.team_id)
 
       // Fetch all templates
       const { data: templatesData, error: templateError } = await supabase
@@ -53,7 +63,7 @@ export default function TeamSettings() {
       <h1>Team Settings</h1>
       {templates.map((template) => (
         <TemplateCard key={template.id} template={template}>
-          <Activate team_id={teamId} template_id={template.id} />
+          <Activate teamId={teamId} templateId={template.id} />
         </TemplateCard>
       ))}
     </div>
