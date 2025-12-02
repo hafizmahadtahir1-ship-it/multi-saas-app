@@ -1,58 +1,87 @@
-import { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseClient';
+// pages/team/dashboard.tsx
+import React, { useState, useEffect } from "react";
+import UpgradeModal from "../../components/UpgradeModal";
 
-export default function DashboardPage() {
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+interface TeamData {
+  plan: string;
+}
 
+const DashboardPage: React.FC = () => {
+  // Modal state
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+
+  // Team plan state
+  const [teamPlan, setTeamPlan] = useState<string>("free");
+
+  // Sample templates for dashboard
+  const templates = [
+    { id: 1, name: "Async Standup" },
+    { id: 2, name: "Meeting Cost Calculator" },
+  ];
+
+  // Fetch team plan from Supabase API
   useEffect(() => {
-    const fetchTemplates = async () => {
-      const { data, error } = await supabase
-        .from('team_templates')
-        .select('id, template_id, active, created_at');
-
-      if (error) {
-        console.error('Error fetching templates:', error.message);
-      } else {
-        setTemplates(data || []);
+    async function fetchTeamPlan() {
+      try {
+        const res = await fetch("/api/get_team_plan");
+        const data: TeamData = await res.json();
+        if (data.plan) setTeamPlan(data.plan);
+      } catch (err) {
+        console.log("Error fetching team plan:", err);
       }
-
-      setLoading(false);
-    };
-
-    fetchTemplates();
+    }
+    fetchTeamPlan();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-4">Team Dashboard</h1>
-        <p>Loading templates...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-4">Team Dashboard</h1>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold mb-6">Team Dashboard</h1>
 
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-2">Active Templates</h2>
-
-        {templates.length === 0 ? (
-          <p>No active templates yet.</p>
-        ) : (
-          <ul className="list-disc ml-5">
-            {templates.map((t) => (
-              <li key={t.id} className="mb-2">
-                Template ID: <b>{t.template_id}</b> — Status:{' '}
-                {t.active ? '✅ Active' : '❌ Inactive'} — Created:{' '}
-                {new Date(t.created_at).toLocaleString()}
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Templates Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {templates.map((t) => (
+          <div key={t.id} className="bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-2">{t.name}</h2>
+            {/* Run Template Button */}
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={() => {
+                if (teamPlan === "free") {
+                  alert("You’ve reached the Free Plan limit! Upgrade to Pro to run unlimited templates.");
+                } else {
+                  alert(`Running ${t.name} template...`);
+                }
+              }}
+            >
+              Run Template
+            </button>
+          </div>
+        ))}
       </div>
+
+      {/* Free Plan Notice */}
+      {teamPlan === "free" && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-6">
+          <p className="mb-2 font-semibold">Upgrade Required 🚀</p>
+          <p className="mb-4">
+            You’ve reached the limit for the Free Plan. Upgrade to Pro for unlimited runs and premium features.
+          </p>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+            onClick={() => setIsUpgradeOpen(true)}
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+      />
     </div>
   );
-}
+};
+
+export default DashboardPage;

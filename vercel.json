@@ -1,8 +1,23 @@
 {
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/cron/process-templates/route.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
-      "path": "/api/templates/run",
-      "schedule": "0 9 * * *"
+      "path": "/api/cron/process-templates",
+      "schedule": "0 9 * * *" // Daily at 9 AM UTC
     }
-  ]
+  ],
+  "env": {
+    "ENABLE_EXPERIMENTAL_COREPACK": "1"
+  }
 }
