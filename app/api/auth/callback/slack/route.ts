@@ -12,10 +12,12 @@ export async function GET(request: NextRequest) {
     // 🔹 DEBUG LOG: API route hit + code
     console.log('✅ API Route Hit - Code:', code);
     console.log('✅ Environment Check:', {
-      hasClientId: !!process.env.NEXT_PUBLIC_SLACK_CLIENT_ID,
-      hasClientSecret: !!process.env.SLACK_CLIENT_SECRET,
-      hasAppUrl: !!process.env.NEXT_PUBLIC_APP_URL
-    });
+  NEXT_PUBLIC_SLACK_CLIENT_ID: process.env.NEXT_PUBLIC_SLACK_CLIENT_ID,
+  SLACK_CLIENT_SECRET: process.env.SLACK_CLIENT_SECRET,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+});
 
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
